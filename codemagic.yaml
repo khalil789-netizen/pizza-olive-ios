@@ -1,38 +1,57 @@
 workflows:
   ios_release:
-    name: iOS Release (Capacitor)
+    name: Pizza Olive iOS Build
     max_build_duration: 60
     instance_type: mac_mini_m2
+
     environment:
       node: latest
       xcode: latest
-      vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.pizzaolive.app"
 
     scripts:
-      - name: Install NPM deps
-        script: |
-          npm ci || npm i
 
-      - name: Build web (optional)
+      - name: Install dependencies
+        script: |
+          npm install
+
+      # בונה את האתר (הקבצים בתוך www)
+      - name: Build web app
         script: |
           npm run build || echo "no build step"
 
-      - name: Capacitor sync iOS (creates Podfile)
+      # יוצר פרויקט iOS אמיתי (החלק הכי חשוב)
+      - name: Create iOS platform fresh
         script: |
+          rm -rf ios
+          npm install @capacitor/ios
+          npx cap add ios
           npx cap sync ios
 
+      # נראה איפה ה-Podfile נוצר
+      - name: Verify Podfile
+        script: |
+          echo "Searching Podfile..."
+          find ios -name Podfile
+
+      # מתקין CocoaPods במקום הנכון אוטומטית
       - name: Install CocoaPods
         script: |
-         cd ios/App/App
+          POD_DIR=$(dirname "$(find ios -name Podfile | head -n 1)")
+          echo "Podfile found at: $POD_DIR"
+          cd "$POD_DIR"
           pod install
 
-      - name: Xcode Archive (unsigned)
+      # בניית האפליקציה (יוצר APP)
+      - name: Build iOS app
         script: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath build/App.xcarchive archive
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/App.xcarchive \
+            archive
 
     artifacts:
       - ios/App/build/**/*.xcarchive
