@@ -1,53 +1,43 @@
 workflows:
-  pizza_olive_ios:
-    name: Pizza Olive iOS Build
-    max_build_duration: 60
-    instance_type: mac_mini_m2
+ios_release:
+name: Pizza Olive iOS Build
+instance_type: mac_mini_m2
+max_build_duration: 60
 
-    environment:
-      node: latest
-      xcode: latest
+```
+environment:
+  node: latest
+  xcode: latest
 
-    scripts:
+scripts:
+  - name: Install dependencies
+    script: |
+      npm install
 
-      - name: Install dependencies
-        script: |
-          npm install
+  - name: Build web assets
+    script: |
+      if [ -d "www" ]; then
+        echo "www exists"
+      else
+        echo "ERROR: www folder missing"
+        exit 1
+      fi
 
-      - name: Build web app
-        script: |
-          if [ -d "www" ]; then
-            echo "WWW exists"
-          else
-            echo "ERROR: www folder missing"
-            exit 1
-          fi
+  - name: Sync Capacitor
+    script: |
+      npx cap sync ios
 
-      # מוחק iOS ישן כדי ש-Capacitor יבנה פרויקט Xcode אמיתי
-      - name: Recreate iOS project
-        script: |
-          rm -rf ios
-          npx cap add ios
+  - name: Build iOS (SPM — no CocoaPods)
+    script: |
+      cd ios/App
+      xcodebuild \
+        -project App.xcodeproj \
+        -scheme App \
+        -configuration Release \
+        -sdk iphoneos \
+        -archivePath build/App.xcarchive \
+        archive
 
-      - name: Sync Capacitor
-        script: |
-          npx cap sync ios
-
-      - name: Install CocoaPods
-        script: |
-          cd ios/App
-          pod install
-
-      - name: Build IPA
-        script: |
-          cd ios/App
-          xcodebuild \
-          -workspace App.xcworkspace \
-          -scheme App \
-          -configuration Release \
-          -sdk iphoneos \
-          -archivePath build/App.xcarchive \
-          archive
-
-    artifacts:
-      - ios/App/build/**/*.xcarchive
+artifacts:
+  - ios/App/build/*.xcarchive
+```
