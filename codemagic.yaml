@@ -9,49 +9,39 @@ workflows:
       xcode: latest
 
     scripts:
-
       - name: Install dependencies
         script: |
           npm install
 
-      # בונה את האתר (הקבצים בתוך www)
-      - name: Build web app
+      - name: Ensure web assets exist
         script: |
-          npm run build || echo "no build step"
+          mkdir -p www
+          cp -r assets www/ || true
+          cp -r css www/ || true
+          cp -r js www/ || true
+          cp index.html www/ || true
 
-      # יוצר פרויקט iOS אמיתי (החלק הכי חשוב)
       - name: Create iOS platform fresh
         script: |
-          rm -rf ios
-          npm install @capacitor/ios
-          npx cap add ios
+          npx cap add ios --force
+
+      - name: Sync Capacitor
+        script: |
           npx cap sync ios
 
-      # נראה איפה ה-Podfile נוצר
-      - name: Verify Podfile
-        script: |
-          echo "Searching Podfile..."
-          find ios -name Podfile
-
-      # מתקין CocoaPods במקום הנכון אוטומטית
       - name: Install CocoaPods
         script: |
-          POD_DIR=$(dirname "$(find ios -name Podfile | head -n 1)")
-          echo "Podfile found at: $POD_DIR"
-          cd "$POD_DIR"
+          cd ios/App
           pod install
 
-      # בניית האפליקציה (יוצר APP)
-      - name: Build iOS app
+      - name: Build iOS archive
         script: |
           cd ios/App
-          xcodebuild \
-            -workspace App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath build/App.xcarchive \
-            archive
+          xcodebuild -workspace App.xcworkspace \
+          -scheme App \
+          -configuration Release \
+          -sdk iphoneos \
+          -archivePath build/App.xcarchive archive
 
     artifacts:
       - ios/App/build/**/*.xcarchive
