@@ -16,7 +16,11 @@ workflows:
         script: |
           npm ci || npm i
 
-      - name: Capacitor sync iOS
+      - name: Build web (optional)
+        script: |
+          npm run build || echo "no build step"
+
+      - name: Capacitor sync iOS (creates Podfile)
         script: |
           npx cap sync ios
 
@@ -25,11 +29,10 @@ workflows:
           cd ios/App
           pod install
 
-      - name: Build IPA (unsigned for now)
+      - name: Xcode Archive (unsigned)
         script: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath build/App.xcarchive archive
 
     artifacts:
       - ios/App/build/**/*.xcarchive
-      - ios/App/build/**/*.app
