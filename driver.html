@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+<title>כניסת שליחים – Pizza Olive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body class="driver-layout">
+    <header class="driver-top-bar">
+      <div class="driver-top-bar-inner">
+        <div class="driver-logo">PIZZA OLIVE</div>
+        <div class="driver-top-title">כניסת שליחים</div>
+      </div>
+    </header>
+
+    <main class="driver-page">
+      <!-- Login -->
+      <section id="driverLoginSection" class="driver-card">
+        <h1 class="driver-card-title">כניסה לשליחים</h1>
+        <p class="driver-card-subtitle">תקליד את ה‑PIN שקיבלת מהבוס 😊</p>
+
+        <label class="driver-field-label" for="driverPinInput">PIN של שליח</label>
+        <input
+          id="driverPinInput"
+          type="password"
+          inputmode="numeric"
+          maxlength="6"
+          class="driver-field-input"
+          placeholder="****"
+        />
+
+        <button id="driverLoginBtn" class="driver-btn driver-btn-primary">כניסה</button>
+        <p id="driverLoginError" class="driver-msg driver-msg-error"></p>
+      </section>
+
+      <!-- Claim orders + list -->
+      <section id="driverClaimSection" class="driver-card driver-card-claim hidden">
+        <h1 class="driver-card-title">
+          שלום, <span id="driverNameLabel"></span> ✋
+        </h1>
+        <p class="driver-card-subtitle">פה אתה משייך הזמנות על שמך ורואה את הסיכום שלך.</p>
+
+        <div class="driver-claim-box">
+          <label class="driver-field-label" for="orderIdInput">מספר הזמנה (הקוד שהקופאי אומר לך)</label>
+          <input
+            id="orderIdInput"
+            type="text"
+            class="driver-field-input"
+            placeholder="למשל: 1042"
+          />
+          <button id="claimOrderBtn" class="driver-btn driver-btn-primary">
+            שייך הזמנה
+          </button>
+          <p id="claimStatus" class="driver-msg driver-msg-info"></p>
+        </div>
+
+        <div class="driver-orders-box">
+          <h2 class="driver-section-title">ההזמנות שלי</h2>
+          <p id="driverSummaryText" class="driver-summary"></p>
+          <div id="driverOrdersList" class="driver-orders-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- חלון פרטי הזמנה לשליח -->
+    <div id="driverOrderModal" class="driver-order-modal hidden">
+      <div class="driver-order-modal-inner">
+        <div id="driverOrderModalTitle" class="driver-order-modal-title"></div>
+        <div id="driverOrderModalBody" class="driver-order-modal-body"></div>
+        <div class="driver-order-modal-hint">לחיצה בכל מקום תסגור את החלון</div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/driver.js"></script>
+  </body>
+</html>

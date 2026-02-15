@@ -1,0 +1,4 @@
+USB printing defaults:
+- Edit js/print-config.js to set DEFAULT_PRINT_SERVER_URL and DEFAULT_PRINT_TOKEN.
+- The app will use these defaults automatically (no prompt), unless you override via localStorage by printing settings prompts.
+If ngrok URL changes, update js/print-config.js and re-deploy the site (or clear overrides and set new URL).

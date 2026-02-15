@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b0f1e"/>
+      <stop offset="0.48" stop-color="#0f1738"/>
+      <stop offset="1" stop-color="#060914"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="20%" cy="25%" r="75%">
+      <stop offset="0" stop-color="rgba(215,178,90,0.48)"/>
+      <stop offset="1" stop-color="rgba(215,178,90,0)"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="80%" cy="75%" r="80%">
+      <stop offset="0" stop-color="rgba(215,178,90,0.26)"/>
+      <stop offset="1" stop-color="rgba(215,178,90,0)"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="b"/>
+      <feBlend in="SourceGraphic" in2="b" mode="screen"/>
+    </filter>
+  </defs>
+  <rect width="1400" height="700" fill="url(#bg)"/>
+  <rect width="1400" height="700" fill="url(#glow)"/>
+  <rect width="1400" height="700" fill="url(#glow2)"/>
+  <g filter="url(#soft)" opacity="0.9">
+    <circle cx="1000" cy="220" r="140" fill="rgba(215,178,90,0.16)"/>
+    <circle cx="1120" cy="280" r="190" fill="rgba(255,255,255,0.05)"/>
+    <circle cx="860" cy="520" r="260" fill="rgba(25,195,125,0.08)"/>
+  </g>
+  <g opacity="0.9">
+    <text x="120" y="280" font-family="Arial, sans-serif" font-size="122" font-weight="900" fill="rgba(233,238,252,0.96)">🍝</text>
+    <text x="120" y="385" font-family="Arial, sans-serif" font-size="76" font-weight="900" fill="rgba(233,238,252,0.92)">PASTA</text>
+    <text x="120" y="452" font-family="Arial, sans-serif" font-size="34" font-weight="800" fill="rgba(168,179,214,0.92)">Young • Trendy • WOW</text>
+  </g>
+  <g opacity="0.55">
+    <path d="M850 90c160 40 290 140 360 290" stroke="rgba(215,178,90,0.55)" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M865 610c190-35 345-150 420-330" stroke="rgba(215,178,90,0.34)" stroke-width="8" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

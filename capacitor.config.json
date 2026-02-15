@@ -1,0 +1,6 @@
+{
+  "appId": "com.pizzaolive.app",
+  "appName": "Pizza Olive",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

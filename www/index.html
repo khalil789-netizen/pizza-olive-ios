@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+<title>פיצה אוליב – קופה</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+</head>
+<body class="cashier-layout">
+  <header class="app-header">
+    <h1>פיצה אוליב</h1>
+    <div class="header-right">
+      <button id="adminBtn" class="btn btn-secondary btn-small">⚙️ ניהול</button>
+      <button id="mapTabBtn" class="btn btn-secondary btn-small map-tab-header">🗺️ מפה</button>
+      <button id="printConfigBtn" class="btn btn-secondary btn-small">🖨️ הדפסה</button>
+      <button id="printTestBtn" class="btn btn-secondary btn-small">✅ בדיקה</button>
+      <span id="connectionStatus" class="badge badge-gray">מנסה להתחבר...</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- צד שמאל – תפריט -->
+    <section class="panel panel-menu">
+      <h2 class="panel-title">التـفريط</h2>
+      <div class="category-tabs" id="categoryTabs">
+        <!-- נבנה דינמית ב-JS -->
+      </div>
+      <div id="menuItems" class="menu-items">
+        <!-- נבנה דינמית ב-JS -->
+      </div>
+    </section>
+
+    <!-- צד ימין – הזמנה נוכחית + הזמנות פתוחות -->
+    <section class="panel panel-order">
+      <div class="current-order">
+        <div class="order-header">
+          <h2>الطلب الحالي</h2>
+          <span id="orderTypeLabel" class="badge badge-blue">نوع: لسا مش محدد</span>
+        </div>
+
+        <div id="orderItems" class="order-items">
+          <p class="empty-text">ما فيش طلب لسا. إضغط على منتج من التـفريط.</p>
+        </div>
+
+        
+
+        <div class="order-footer">
+          <div class="order-total">
+            <span>المجموع:</span>
+            <strong id="orderTotal">0 ₪</strong>
+          </div>
+          <button id="clearOrderBtn" class="btn btn-secondary">مسح الطلب</button>
+          <button id="cancelEditBtn" class="btn btn-secondary hidden">الغاء</button>
+          <button id="deliveryFeeBtn" class="btn btn-secondary">דמי משלוח</button>
+          <span id="deliveryFeeLabel" class="delivery-fee-label hidden"></span>
+          <div class="order-footer-actions-right">
+            <button id="updateOrderBtn" class="btn btn-secondary hidden">حدث</button>
+            <button id="finishOrderBtn" class="btn btn-primary">إنهاء الطلب →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-open-orders">
+      <div class="orders-open">
+        <div class="orders-header">
+          <h2>طلبات مفتوحة</h2>
+          <div class="orders-tabs">
+            <button id="ordersTabBtn" class="orders-tab active">الطلبات</button>
+            <button id="closedOrdersTabBtn" class="orders-tab">طلبات مسكره</button>
+            <button id="driversTabBtn" class="orders-tab">سائقين</button>
+<button id="takeawaySummaryBtn" class="orders-tab orders-tab-accent">خنوت</button>
+          </div>
+        </div>
+        <div id="openOrdersPanel">
+          <div class="orders-search">
+            <input id="openOrdersSearch" type="text" class="orders-search-input" placeholder="חיפוש לפי מספר הזמנה / פלאפון / כתובת / סכום" inputmode="text" />
+          </div>
+          <div id="openOrdersList" class="open-orders-list">
+            <p class="empty-text">لا يوجد طلبات مفتوحة.</p>
+          </div>
+        </div>
+
+        <div id="closedOrdersPanel" class="hidden">
+          <div class="orders-search">
+            <input id="closedOrdersSearch" type="text" class="orders-search-input" placeholder="חיפוש לפי מספר הזמנה / פלאפון / כתובת" inputmode="text" />
+          </div>
+          <div id="closedOrdersList" class="open-orders-list">
+            <p class="empty-text">لا يوجد طلبات مسكره.</p>
+          </div>
+          <div id="closedOrdersFooter" class="drivers-summary-footer"></div>
+        </div>
+
+        
+        <div id="takeawayPanel" class="drivers-summary hidden">
+          <div id="takeawayTotals" class="drivers-summary-footer"></div>
+          <div id="takeawayOrdersList" class="open-orders-list">
+            <p class="empty-text">אין הזמנות خنوت / يقعد פתוחות.</p>
+          </div>
+        </div>
+
+<div id="driversSummaryPanel" class="drivers-summary hidden">
+          <div id="driversSummaryContent">
+            <p class="empty-text">אין נתונים של شليخيم עדיין.</p>
+          </div>
+</div>
+      </div>
+    </section>
+  </main>
+
+  
+  <!-- Map Popup Modal -->
+  <div id="mapModal" class="modal hidden">
+    <div class="modal-backdrop" id="mapModalBackdrop"></div>
+    <div class="modal-content map-modal-content">
+      <div class="map-modal-header">
+        <div class="map-modal-title">🗺️ מפה</div>
+        <button id="mapModalCloseBtn" class="btn btn-secondary btn-small">✖</button>
+      </div>
+      <div class="map-modal-body">
+        <div id="driversMap" class="drivers-map map-modal-map"></div>
+      </div>
+    </div>
+  </div>
+
+<!-- דיאלוג סוג הזמנה + פרטי לקוח + סוג הדפסה -->
+  
+  <div id="orderEditModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>עריכת הזמנה</h2>
+      <div class="modal-section">
+        <p id="orderEditTitle" class="field-label"></p>
+        <div id="orderEditItems" class="order-edit-items"></div>
+        <button id="orderEditAddItemBtn" class="btn btn-secondary btn-small">+ הוסף פריט</button>
+      </div>
+      <div class="modal-section">
+        <label class="field-label">סכום כולל (יחושב אוטומטית, אפשר לשנות ידנית)</label>
+        <input id="orderEditTotalInput" type="number" step="0.5" />
+      </div>
+      <div class="modal-actions">
+        <button id="orderEditCancelBtn" class="btn btn-secondary">ביטול</button>
+        <button id="orderEditSaveBtn" class="btn btn-primary">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- דיאלוג תוספות לפריט -->
+  <div id="toppingsModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-toppings">
+      <h2>إضافات للصنف</h2>
+      <div class="modal-section toppings-layout">
+        <div class="pizza-zone-wrapper">
+          <div class="pizza-circle">
+            
+            <span class="pizza-line line-v" aria-hidden="true"></span>
+            <span class="pizza-line line-d1" aria-hidden="true"></span>
+            <span class="pizza-line line-d2" aria-hidden="true"></span>
+<button class="pizza-zone-btn zone-full" data-coverage="full">على الكل</button>
+            <button class="pizza-zone-btn zone-half-right" data-coverage="half-right">نصف يمين</button>
+            <button class="pizza-zone-btn zone-half-left" data-coverage="half-left">نصف شمال</button>
+            <button class="pizza-zone-btn zone-third-1" data-coverage="third-1">ثلث 1</button>
+            <button class="pizza-zone-btn zone-third-2" data-coverage="third-2">ثلث 2</button>
+            <button class="pizza-zone-btn zone-third-3" data-coverage="third-3">ثلث 3</button>
+            <button class="pizza-zone-btn zone-quarter-rt" data-coverage="quarter-right-top">ربع 1</button>
+            <button class="pizza-zone-btn zone-quarter-rb" data-coverage="quarter-right-bottom">ربع 2</button>
+            <button class="pizza-zone-btn zone-quarter-lt" data-coverage="quarter-left-top">ربع 3</button>
+            <button class="pizza-zone-btn zone-quarter-lb" data-coverage="quarter-left-bottom">ربع 4</button>
+          </div>
+          <div class="current-zone-label">
+            المنطقة الحالية: <span id="currentZoneLabel">على الكل</span>
+          </div>
+          <div class="current-zone-toppings">
+            <div id="currentZoneToppings" class="zone-summary">بدون إضافات</div>
+          </div>
+        </div>
+        <div class="toppings-panel-wrapper">
+          <div id="toppingsPanel" class="toppings-panel"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="toppingsCloseBtn" class="btn btn-secondary">اغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- דיאלוג בחירת משקה חינם -->
+  <div id="freeDrinkModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>إختيار مشروب مجاني</h2>
+      <div class="modal-section">
+        <label class="field-label">الصنف:</label>
+        <div id="freeDrinkItemName" class="toppings-current-item"></div>
+      </div>
+      <div class="modal-section">
+        <label class="field-label">مشروب 1.5 مجاني</label>
+        <div id="freeDrinkOptions" class="drink-chips-wrapper"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="freeDrinkClearBtn" class="btn btn-secondary">إزالة المشروب</button>
+        <button id="freeDrinkCloseBtn" class="btn btn-primary">סגירה</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="orderMetaModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>إنهاء الطلب</h2>
+
+      <div class="modal-section">
+        <label class="field-label">نوع الطلب</label>
+        <div class="btn-group" id="serviceTypeButtons">
+          <button data-type="delivery" class="btn btn-toggle">توصيل</button>
+          <button data-type="takeaway" class="btn btn-toggle">خنوت</button>
+          <button data-type="dinein" class="btn btn-toggle">يقعد</button>
+        </div>
+      </div>
+
+      <div class="modal-section" id="customerFieldsDelivery" style="display:none;">
+        <label class="field-label">تفاصيل التوصيل</label>
+        <div class="field-row">
+          <label>اسم الزبون</label>
+          <input id="custNameDelivery" type="text" />
+        </div>
+        <div class="field-row">
+          <label>رقم تلفون</label>
+          <input id="custPhoneDelivery" type="tel" placeholder="05XXXXXXXX" />
+          <small id="custPhoneDeliveryError" class="error-text"></small>
+        </div>
+        <div class="field-row">
+          <label>شارع</label>
+          <input id="custStreet" type="text" />
+        </div>
+        <div class="field-row field-row-inline">
+          <div>
+            <label>رقم بيت</label>
+            <input id="custHouseNumber" type="text" />
+          </div>
+          <div>
+            <label>طابق</label>
+            <input id="custFloor" type="text" />
+          </div>
+          <div>
+            <label>شقة</label>
+            <input id="custApartment" type="text" />
+          </div>
+        </div>
+        <div class="field-row">
+          <label>مدخل</label>
+          <input id="custEntrance" type="text" />
+        </div>
+        <div class="field-row">
+          <label>مدينة</label>
+          <input id="custCity" type="text" />
+        </div>
+</div>
+
+      <div class="modal-section" id="customerFieldsTakeaway" style="display:none;">
+        <label class="field-label">تفاصيل خنوت (TAKE AWAY)</label>
+        <div class="field-row">
+          <label>اسم الزبون</label>
+          <input id="custNameTakeaway" type="text" />
+        </div>
+        <div class="field-row">
+          <label>رقم تلفون</label>
+          <input id="custPhoneTakeaway" type="tel" placeholder="05XXXXXXXX" />
+          <small id="custPhoneTakeawayError" class="error-text"></small>
+        </div>
+      </div>
+
+      <div class="modal-section" id="customerFieldsDinein" style="display:none;">
+        <label class="field-label">تفاصيل يقعد</label>
+        <div class="field-row">
+          <label>رقم طاولة</label>
+          <input id="custTableNumber" type="text" />
+        </div>
+        <div class="field-row">
+          <label>اسم (اختياري)</label>
+          <input id="custNameDinein" type="text" />
+        </div>
+      </div>
+
+      <div class="modal-section" id="paymentNotesSection">
+        <div class="field-row">
+          <label>ملاحظات دفع (اختياري)</label>
+          <input id="paymentNotes" type="text" placeholder="كرت / نقد / بيت ..." />
+        </div>
+      </div>
+
+
+      <div class="modal-section">
+        <label class="field-label">حالة الدفع</label>
+        <div class="btn-group" id="paymentStatusButtons">
+          <button data-status="paid" class="btn btn-toggle">اشراي</button>
+          <button data-status="unpaid" class="btn btn-toggle">مزومان</button>
+        </div>
+</div>
+
+      <div class="modal-section">
+        <label class="field-label">نوع الطباعة</label>
+        <div class="btn-group">
+          <button id="printModeA4" class="btn btn-toggle" data-mode="a4">A4</button>
+          <button id="printModePos" class="btn btn-toggle active" data-mode="pos">80mm</button>
+          <button id="printModeUsb" class="btn btn-toggle" data-mode="usb">USB 80mm</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancelMetaBtn" class="btn btn-secondary">إلغاء</button>
+        <button id="saveMetaBtn" class="btn btn-primary">حفظ و طباعة</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- דיאלוג עדכון פרטי הזמנה פתוחה (طلبات مفتوحة) -->
+  <div id="openOrderEditMetaModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>עדכון פרטי הזמנה</h2>
+
+      <div class="modal-section">
+        <label class="field-label">שם הלקוח</label>
+        <input id="openEditName" type="text" />
+      </div>
+
+      <div class="modal-section">
+        <label class="field-label">מספר פלאפון</label>
+        <input id="openEditPhone" type="tel" />
+      </div>
+
+      <div class="modal-section">
+        <label class="field-label">כתובת</label>
+        
+        <div class="field-row">
+          <input id="openEditStreet" type="text" placeholder="רחוב / شارع" />
+          <input id="openEditHouse" type="text" placeholder="בית" />
+        </div>
+<div class="field-row">
+          <input id="openEditCity" type="text" placeholder="עיר / مدينة" />
+        </div>
+
+        <div class="field-row">
+          <input id="openEditFloor" type="text" placeholder="קומה" />
+          <input id="openEditApartment" type="text" placeholder="דירה" />
+        </div>
+        <div class="field-row">
+          <input id="openEditEntrance" type="text" placeholder="مدخل" />
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <label class="field-label">نوع الطلب</label>
+        <div class="btn-group" id="openEditServiceTypeGroup">
+          <button data-type="dinein" class="btn btn-toggle">يقعد</button>
+          <button data-type="delivery" class="btn btn-toggle">توصيل</button>
+          <button data-type="takeaway" class="btn btn-toggle">خنوت</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="openEditCancelBtn" class="btn btn-secondary">ביטול</button>
+        <button id="openEditPrintA4Btn" class="btn btn-secondary">طباعة A4</button>
+        <button id="openEditSaveBtn" class="btn btn-primary">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- דיאלוג צפייה בפרטי הזמנה -->
+  <div id="orderDetailsModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-order-details">
+      <h2>تفاصيل الطلب</h2>
+      <div id="orderDetailsMeta" class="order-details-meta"></div>
+      <div class="order-details-items-wrapper">
+        <table class="order-details-items-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>פריט</th>
+              <th>כמות</th>
+              <th>סה"כ</th>
+            </tr>
+          </thead>
+          <tbody id="orderDetailsItemsBody"></tbody>
+        </table>
+      </div>
+      <div id="orderDetailsTotals" class="order-details-totals"></div>
+      <div class="modal-actions">
+        <button id="orderDetailsCloseBtn" class="btn btn-primary">סגירה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- דיאלוג סיכום خنوت / يقعد ללא שליח -->
+  <div id="takeawaySummaryModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-summary">
+      <h2>סיכום خنوت / يقعد – בלי שליח</h2>
+      <p class="modal-subtitle">מציג רק הזמנות הפתוחות שכרגעם خنوت או يقعد – בלי שיוך לשליח.</p>
+      <table class="takeaway-summary-table">
+        <thead>
+          <tr>
+            <th>סוג</th>
+            <th>مزومان</th>
+            <th>اشراي</th>
+          </tr>
+        </thead>
+        <tbody id="takeawaySummaryTableBody"></tbody>
+      </table>
+      <div id="takeawaySummaryEmpty" class="takeaway-summary-meta"></div>
+      <div class="modal-actions">
+        <button id="takeawaySummaryClose" class="btn btn-primary">סגירה</button>
+      </div>
+    </div>
+  </div>
+
+<!-- דיאלוג אדמין (תפריט + לקוחות) -->
+  <div id="adminModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-admin">
+      <h2>אזור ניהול</h2>
+
+      <div id="adminLoginSection" class="modal-section">
+        <label class="field-label">קוד מנהל (PIN)</label>
+        <div class="field-row">
+          <input id="adminPinInput" type="password" placeholder="****" />
+        </div>
+        <div class="modal-actions">
+          <button id="adminCloseBtn" class="btn btn-secondary">סגור</button>
+          <button id="adminLoginBtn" class="btn btn-primary">כניסה</button>
+        </div>
+      </div>
+
+      <div id="adminMainSection" class="hidden">
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="menu">תפריט</button>
+          <button class="admin-tab" data-tab="categories">קטגוריות</button>
+          <button class="admin-tab" data-tab="customers">לקוחות</button>
+          <button class="admin-tab" data-tab="drivers">شليخימ</button>
+          <button class="admin-tab" data-tab="admins">מנהלים</button>
+          <button class="admin-tab" data-tab="logs">היסטוריה</button>
+          <button class="admin-tab" data-tab="daysummaries">סיכום יום</button>
+        </div>
+
+        <div id="adminMenuTab" class="admin-tab-panel">
+          <div class="admin-toolbar">
+            <button id="adminAddMenuItemBtn" class="btn btn-primary btn-small">+ הוסף פריט</button>
+          </div>
+          <div id="adminMenuList" class="admin-list">
+            <p class="empty-text">טוען תפריט...</p>
+          </div>
+        </div>
+
+        
+<div id="adminCategoriesTab" class="admin-tab-panel hidden">
+  <div class="admin-toolbar">
+    <button id="adminAddCategoryBtn" class="btn btn-primary btn-small">+ הוסף קטגוריה</button>
+    <button id="adminRefreshCategoriesBtn" class="btn btn-secondary btn-small">רענן</button>
+  </div>
+  <div id="adminCategoriesList" class="admin-list">
+    <p class="empty-text">טוען קטגוריות...</p>
+  </div>
+</div>
+
+<div id="adminCustomersTab" class="admin-tab-panel hidden">
+          <div id="adminCustomersList" class="admin-list">
+            <p class="empty-text">טוען לקוחות...</p>
+          </div>
+        </div>
+
+        <div id="adminDriversTab" class="admin-tab-panel hidden">
+          <div class="admin-toolbar">
+            <button id="adminAddDriverBtn" class="btn btn-primary btn-small">+ הוסף שליח</button>
+          </div>
+          <div id="adminDriversList" class="admin-list">
+            <p class="empty-text">טוען شليخימ...</p>
+          </div>
+        </div>
+
+        <div id="adminAdminsTab" class="admin-tab-panel hidden">
+          <div class="admin-toolbar">
+            <button id="adminAddAdminBtn" class="btn btn-primary btn-small">+ הוסף מנהל</button>
+          </div>
+          <div id="adminAdminsList" class="admin-list">
+            <p class="empty-text">טוען מנהלים...</p>
+          </div>
+        </div>
+
+        <div id="adminLogsTab" class="admin-tab-panel hidden">
+          <div id="adminLogsList" class="admin-list">
+            <p class="empty-text">אין עדיין פעולות מנהלים.</p>
+          </div>
+        </div>
+        <div id="adminDaySummariesTab" class="admin-tab-panel hidden">
+          <div class="admin-toolbar">
+            <button id="adminRefreshDaySummariesBtn" class="btn btn-secondary btn-small">רענן</button>
+          </div>
+          <div id="adminDaySummariesList" class="admin-list">
+            <p class="empty-text">אין עדיין סיכומי ימים.</p>
+          </div>
+        </div>
+
+
+        <div class="modal-actions">
+          <button id="adminLogoutBtn" class="btn btn-secondary">יציאה מניהול</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- הגדרות הדפסה (שרת הדפסה / ngrok) -->
+  <div id="printConfigModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>הגדרות הדפסה</h2>
+
+      <div id="printConfigLoginSection" class="modal-section">
+        <div class="form-row">
+          <label>PIN אדמין ראשי</label>
+          <input id="printConfigPinInput" type="password" inputmode="numeric" placeholder="הכנס PIN" />
+        </div>
+        <div class="modal-actions">
+          <button id="printConfigLoginBtn" class="btn btn-primary">כניסה</button>
+          <button id="printConfigCloseBtn" class="btn btn-secondary">סגור</button>
+        </div>
+      </div>
+
+      <div id="printConfigMainSection" class="modal-section hidden">
+        <div class="form-row">
+          <label>כתובת שרת הדפסה</label>
+          <input id="printServerUrlInput" type="text" placeholder="https://xxxx.ngrok-free.dev" />
+        </div>
+        <div class="hint" style="margin-top:6px; opacity:0.85; font-size:0.9rem;">
+          הכנס רק את הדומיין (בלי /print). לדוגמה: https://example.ngrok-free.dev
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button id="printServerTestBtn" class="btn btn-secondary">בדיקה</button>
+          <button id="printServerSaveBtn" class="btn btn-primary">שמור</button>
+          <button id="printConfigCloseBtn2" class="btn btn-secondary">סגור</button>
+        </div>
+        <div id="printConfigStatus" class="hint" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- דיאלוג עריכת פריט תפריט -->
+  <div id="menuItemEditModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>עריכת פריט תפריט</h2>
+      <div class="modal-section">
+        <div class="field-row">
+          <label>שם בערבית</label>
+          <input id="editMenuItemNameAr" type="text" />
+        </div>
+        <div class="field-row">
+          <label>קטגוריה (pizza / sfiha / drinks ...)</label>
+          <input id="editMenuItemCategory" type="text" />
+        </div>
+        <div class="field-row">
+          <label>גודל (אם רלוונטי)</label>
+          <input id="editMenuItemSize" type="text" />
+        </div>
+        <div class="field-row">
+          <label>מחיר בסיס (₪)</label>
+          <input id="editMenuItemPrice" type="number" />
+        </div>
+        <div class="field-row">
+          <label>סדר תצוגה</label>
+          <input id="editMenuItemSortOrder" type="number" />
+        </div>
+        <div class="field-row">
+          <label>
+            <input id="editMenuItemActive" type="checkbox" checked />
+            פעיל במערכת
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="menuItemEditCancelBtn" class="btn btn-secondary">ביטול</button>
+        <button id="menuItemEditSaveBtn" class="btn btn-primary">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>

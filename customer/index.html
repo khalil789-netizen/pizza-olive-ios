@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- Dark theme-color so the browser UI blends with the app background -->
+  <meta name="theme-color" content="#0b0f1e" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pizza Olive">
+  <link rel="apple-touch-icon" href="assets/olive-icon-192.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/olive-icon.svg" type="image/svg+xml">
+  <title>Pizza Olive • הזמנה</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles-enhanced.css" />
+
+  <!-- Map (Leaflet / OSM) for Wolt-style checkout ETA -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+</head>
+<body>
+
+  <!-- Splash (App-like) -->
+  <div class="splash" id="splash" aria-hidden="false">
+    <div class="splash__inner">
+      <div class="splash__logo">🫒</div>
+      <div class="splash__name">Pizza Olive</div>
+      <div class="splash__tag">Young • Trendy • WOW</div>
+      <div class="splash__bar"><div class="splash__barFill"></div></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <button class="icon-btn" id="btnBack" aria-label="חזרה">✕</button>
+      <div class="brand">
+        <div class="brand__logo" aria-hidden="true">🫒</div>
+        <div class="brand__text">
+          <div class="brand__name">Pizza Olive</div>
+          <div class="brand__sub">הזמנה דיגיטלית</div>
+        </div>
+      </div>
+      <button class="cart-btn" id="btnCart" aria-label="שקית">
+        <span class="cart-ico">🛍️</span>
+        <span class="cart-badge" id="cartCount">0</span>
+      </button>
+    </header>
+
+    <main class="content">
+      <aside class="cats" id="cats"></aside>
+
+      <section class="menu">
+        <div class="menu__title">
+          <h1 id="catTitle">טוען…</h1>
+          <p id="catDesc">טוען תפריט מהשרת…</p>
+        <div class="searchRow">
+          <div class="search">
+            <span class="search__ico">🔎</span>
+            <input id="searchInput" class="search__inp" placeholder="חיפוש… (פיצה / פסטה / סלט)" />
+            <button class="search__x" id="searchClear" aria-label="נקה">✕</button>
+          </div>
+        </div>
+
+        </div>
+        <section class="hero" id="hero" aria-label="באנרים">
+          <div class="hero__slides" id="heroSlides"></div>
+          <div class="hero__overlay"></div>
+          <div class="hero__content">
+            <div class="hero__kicker" id="heroKicker">Pizza Olive</div>
+            <div class="hero__headline" id="heroHeadline">Hot & Fresh</div>
+            <div class="hero__sub" id="heroSub">פיצה • פסטה • סלטים • מאפים</div>
+            <div class="hero__ctaRow">
+              <button class="heroBtn" id="heroBtn1">הכי נמכרים</button>
+              <button class="heroBtn heroBtn--ghost" id="heroBtn2">מבצעים</button>
+            </div>
+          </div>
+          <div class="hero__chips" id="heroChips"></div>
+        </section>
+    
+
+        <div class="cards" id="cards"></div>
+      </section>
+    </main>
+
+    <footer class="bottombar">
+      <button class="cta" id="btnCheckout">
+        <span class="cta__left">השקית</span>
+        <span class="cta__right" id="ctaPrice">₪0.00</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- Item Modal -->
+  <div class="modal" id="itemModal" aria-hidden="true">
+    <div class="modal__scrim" data-close="true"></div>
+    <div class="modal__sheet" role="dialog" aria-modal="true" aria-label="פרטי מוצר">
+      <div class="sheet__head">
+        <button class="icon-btn" data-close="true" aria-label="סגירה">✕</button>
+        <div class="sheet__title" id="modalTitle">פריט</div>
+      </div>
+
+      <div class="sheet__hero">
+        <div class="heroPizza" id="heroPizza">
+          <img id="modalImg" alt="" />
+        </div>
+      </div>
+
+      <div class="sheet__body" id="modalBody"></div>
+
+      <div class="sheet__foot sheet__foot--floating" id="modalEditFoot">
+        <button class="cta cta--wide" id="btnAddItem">
+          <span class="cta__left">הוסף לסל</span>
+          <span class="cta__right" id="modalPrice">₪0.00</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area picker modal (simple buttons, no canvas, no effects) -->
+  <div class="modal" id="areaModal" aria-hidden="true">
+    <div class="modal__scrim" data-close="true"></div>
+    <div class="modal__panel areaPanel" role="dialog" aria-modal="true">
+      <div class="modal__top">
+        <div class="modal__title" id="areaTitle">בחר אזור לתוספת</div>
+        <button class="iconBtn" data-close="true" aria-label="סגור">✕</button>
+      </div>
+      <div class="areaBody">
+        <div class="hint" id="areaHint">בחר כיסוי לתוספת: על הכל / חצי / רבעים.</div>
+
+        <div class="areaLayout">
+          <div class="areaLeft">
+            <div class="areaQuick" aria-label="כיסוי מהיר">
+              <button class="pill pill--mini" data-area="halfRight">חצי ימין</button>
+              <button class="pill pill--mini" data-area="all">על הכל</button>
+              <button class="pill pill--mini" data-area="halfLeft">חצי שמאל</button>
+            </div>
+
+            <div class="areaQuarters" id="areaQuarters" aria-label="רבעים">
+              <button class="pill pill--mini" data-area="q1">רבע 1</button>
+              <button class="pill pill--mini" data-area="q2">רבע 2</button>
+              <button class="pill pill--mini" data-area="q3">רבע 3</button>
+              <button class="pill pill--mini" data-area="q4">רבע 4</button>
+            </div>
+
+            <div class="areaActions">
+              <button class="btn btn--wide" id="btnAreaSave">שמור</button>
+              <button class="btn btn--ghost" id="btnAreaRemove">הסר תוספת</button>
+            </div>
+          </div>
+
+          <div class="areaRight">
+            <div class="areaWheel" id="areaWheel" aria-label="בחירת אזור">
+              <div class="areaWheel__circle">
+                <div class="areaWheel__divider areaWheel__divider--v"></div>
+                <div class="areaWheel__divider areaWheel__divider--h"></div>
+
+                <button class="areaWheel__hit areaWheel__hit--q1" data-area="q1" aria-label="רבע 1"></button>
+                <button class="areaWheel__hit areaWheel__hit--q2" data-area="q2" aria-label="רבע 2"></button>
+                <button class="areaWheel__hit areaWheel__hit--q3" data-area="q3" aria-label="רבע 3"></button>
+                <button class="areaWheel__hit areaWheel__hit--q4" data-area="q4" aria-label="רבע 4"></button>
+
+                <div class="areaWheel__labels">
+                  <div class="areaWheel__tag areaWheel__tag--q1">רבע 1</div>
+                  <div class="areaWheel__tag areaWheel__tag--q2">רבע 2</div>
+                  <div class="areaWheel__tag areaWheel__tag--q3">רבע 3</div>
+                  <div class="areaWheel__tag areaWheel__tag--q4">רבע 4</div>
+                </div>
+
+                <div class="areaWheel__center">
+                  <button class="pill pill--mini pill--dark" data-area="halfRight">חצי ימין</button>
+                  <button class="pill pill--mini pill--dark" data-area="all">על הכל</button>
+                  <button class="pill pill--mini pill--dark" data-area="halfLeft">חצי שמאל</button>
+                </div>
+
+                <div class="areaWheel__status" id="areaWheelStatus">על הכל</div>
+              </div>
+            </div>
+
+            <div class="areaFeedback" id="areaFeedback"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Cart Drawer -->
+  <div class="drawer" id="cartDrawer" aria-hidden="true">
+    <div class="drawer__scrim" data-close="true"></div>
+    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="שקית">
+      <div class="drawer__head">
+        <div class="drawer__title">השקית</div>
+        <button class="icon-btn" data-close="true" aria-label="סגירה">✕</button>
+      </div>
+
+      <div class="drawer__meta">
+        <div class="metaGrid">
+          <div class="metaCard">
+            <div class="metaLabel">סוג הזמנה</div>
+            <div class="metaBtns" id="serviceBtns">
+              <button class="metaBtn metaBtn--active" data-service="delivery">משלוח</button>
+              <button class="metaBtn" data-service="pickup">איסוף</button>
+            </div>
+          </div>
+
+          <div class="metaCard">
+            <div class="metaLabel">תשלום</div>
+            <div class="metaBtns" id="payBtns">
+              <button class="metaBtn metaBtn--active" data-pay="unpaid">מזומן</button>
+              <button class="metaBtn" data-pay="paid">אשראי</button>
+            </div>
+          
+        <div class="metaCard" id="notifCard">
+          <div class="metaLabel">התראות (אופציונלי)</div>
+          <div class="hint" id="notifHint">קבל עדכון כשזה מוכן / בדרך.</div>
+          <div class="metaBtns" style="margin-top:8px">
+            <button class="metaBtn" id="btnEnableNotif">אפשר התראות</button>
+            <button class="metaBtn" id="btnNotifLater">אחר כך</button>
+          </div>
+          <div class="hint" id="notifStatus" style="margin-top:8px"></div>
+        </div>
+
+</div>
+        </div>
+
+        <div class="metaCard metaCard--form" id="deliveryForm" style="display:none">
+          <div class="metaLabel">פרטי משלוח (אופציונלי)</div>
+          <div class="formGrid">
+            <input class="input" id="custName" placeholder="שם" />
+            <input class="input" id="custPhone" placeholder="טלפון (10 ספרות)" inputmode="tel" />
+            <input class="input" id="custStreet" placeholder="רחוב" />
+            <input class="input" id="custHouse" placeholder="מספר בית" />
+            <input class="input" id="custCity" placeholder="עיר" />
+            <input class="input" id="custFloor" placeholder="קומה" />
+            <input class="input" id="custApt" placeholder="דירה" />
+          </div>
+          <div class="hint" id="phoneErr" style="color:#ffd0d0; display:none"></div>
+        </div>
+
+        <div class="metaCard metaCard--form" id="dineinForm" style="display:none">
+          <div class="metaLabel">ישיבה</div>
+          <div class="formGrid">
+            <input class="input" id="tableNumber" placeholder="מספר שולחן" />
+            <input class="input" id="dineinName" placeholder="שם (אופציונלי)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer__body" id="cartBody"></div>
+      <div class="drawer__foot">
+        <button class="cta cta--wide" id="btnPlaceOrder">
+          <span class="cta__left">שלח לקופה</span>
+          <span class="cta__right" id="cartTotal">₪0.00</span>
+        </button>
+        <div class="hint" id="sendStatus" style="margin-top:10px; text-align:center"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS (needed for checkout map) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script type="module" src="app.js?v=151"></script>
+
+    <!-- Admin Modal (Firebase media manager) -->
+    <div class="modal" id="adminModal" aria-hidden="true">
+      <div class="modal__backdrop" data-close="admin"></div>
+      <div class="modal__panel modal__panel--admin" role="dialog" aria-modal="true" aria-label="ניהול">
+        <div class="modal__head">
+          <div class="modal__title">ניהול – Pizza Olive</div>
+          <button class="iconBtn" data-close="admin" aria-label="סגור">✕</button>
+        </div>
+
+        <div class="adminTabs">
+          <button class="adminTab is-on" data-tab="banners">באנרים</button>
+          <button class="adminTab" data-tab="products">תמונות מוצרים</button>
+        </div>
+
+        <div class="adminBody">
+          <!-- PIN -->
+          <div class="adminLock" id="adminLock">
+            <div class="adminLock__title">כניסת מנהל</div>
+            <div class="adminLock__sub">הקלד PIN כדי לנהל תמונות/וידאו ב‑Firebase</div>
+            <div class="adminLock__row">
+              <input class="input" id="adminPin" inputmode="numeric" placeholder="PIN" />
+              <button class="btn" id="adminPinBtn">כניסה</button>
+            </div>
+            <div class="hint" id="adminPinHint"></div>
+          </div>
+
+          <!-- Content -->
+          <div class="adminContent" id="adminContent" style="display:none">
+
+            <!-- BANNERS -->
+            <div class="adminPane" data-pane="banners">
+              <div class="adminCard">
+                <div class="adminCard__title">העלאת באנר (תמונה/וידאו)</div>
+                <div class="hint">מומלץ וידאו לופ 3–6 שנ׳, בלי סאונד, עד ~1.5MB.</div>
+
+                <div class="grid2">
+                  <div>
+                    <div class="label">קיקר</div>
+                    <input class="input" id="banKicker" placeholder="🔥 Pizza Olive" />
+                  </div>
+                  <div>
+                    <div class="label">כותרת</div>
+                    <input class="input" id="banHeadline" placeholder="Cheesy & Crispy" />
+                  </div>
+                </div>
+                <div class="label">שורה תחתונה</div>
+                <input class="input" id="banSub" placeholder="פיצה • פסטה • סלטים • מאפים" />
+
+                <div class="label">צ׳יפים (מופרד בפסיק)</div>
+                <input class="input" id="banChips" placeholder="🍕 פיצות, 🧀 תוספות, 🫒 Olive vibe" />
+
+                <div class="label">קובץ (תמונה/וידאו)</div>
+                <input class="input" id="banFile" type="file" accept="image/*,video/mp4,video/webm" />
+
+                <div class="adminRow">
+                  <button class="btn" id="btnUploadBanner">העלה ושמור</button>
+                  <div class="hint" id="banStatus"></div>
+                </div>
+              </div>
+
+              <div class="adminCard">
+                <div class="adminCard__title">באנרים קיימים</div>
+                <div class="hint">גרור לשינוי סדר (בגרסה הבאה). בינתיים אפשר לכבות/למחוק.</div>
+                <div class="adminList" id="bannerList"></div>
+
+                <div class="areaWheel__status" id="areaWheelStatus">על הכל</div>
+              </div>
+            </div>
+
+            <!-- PRODUCTS -->
+            <div class="adminPane" data-pane="products" style="display:none">
+              <div class="adminCard">
+                <div class="adminCard__title">תמונה למוצר</div>
+                <div class="hint">מומלץ תמונה 1:1 (ריבוע), WebP/JPG עד 300KB.</div>
+
+                <div class="label">בחר מוצר</div>
+                <select class="input" id="prodSelect"></select>
+
+                <div class="label">קובץ תמונה</div>
+                <input class="input" id="prodFile" type="file" accept="image/*" />
+
+                <div class="adminRow">
+                  <button class="btn" id="btnUploadProductImg">העלה ושמור</button>
+                  <div class="hint" id="prodStatus"></div>
+                </div>
+              </div>
+
+              <div class="adminCard">
+                <div class="adminCard__title">המלצה לוידאו</div>
+                <div class="hint">
+                  שים וידאו לופ רק בבאנרים, ובמסך "הזמנה התקבלה" / לפני Checkout. לא ברשימות מוצרים.
+                </div>
+
+                <div class="areaWheel__status" id="areaWheelStatus">על הכל</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+</body>
+</html>

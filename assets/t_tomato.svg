@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="384" viewBox="0 0 512 384">
+  <defs>
+    <radialGradient id="g1" cx="35%" cy="20%" r="70%">
+      <stop offset="0%" stop-color="rgba(25,195,125,.35)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="70%" cy="80%" r="70%">
+      <stop offset="0%" stop-color="rgba(215,178,90,.18)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="384" rx="28" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.14)"/>
+  <rect x="16" y="16" width="480" height="352" rx="22" fill="url(#g1)"/>
+  <rect x="16" y="16" width="480" height="352" rx="22" fill="url(#g2)"/>
+  <text x="256" y="175" font-size="120" text-anchor="middle" dominant-baseline="middle">🍅</text>
+  <text x="256" y="310" font-size="46" font-family="system-ui,Segoe UI,Arial" text-anchor="middle" fill="rgba(233,238,252,0.92)" font-weight="800">עגבניות</text>
+</svg>

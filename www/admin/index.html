@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0ea66b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Pizza Olive • Admin</title>
+  <link rel="icon" href="../assets/olive-icon.svg" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/olive-icon.svg" alt="" />
+      <div>
+        <div class="brand__t">Pizza Olive</div>
+        <div class="brand__s">Admin Panel</div>
+      </div>
+    </div>
+    <div class="topbar__actions">
+      <a class="link" href="../">ללקוחות ↩</a>
+      <button id="btnLogout" class="btn btn--ghost">התנתק</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card lock" id="lockCard">
+      <h1>כניסת מנהל</h1>
+      <p class="muted">הכניסה מוגנת ב‑PIN (נשמר בדפדפן ל‑24 שעות).</p>
+      <div class="row">
+        <input id="pinInput" class="input" inputmode="numeric" placeholder="הכנס PIN" autocomplete="one-time-code" />
+        <button id="pinBtn" class="btn">כניסה</button>
+      </div>
+      <div id="pinHint" class="hint"></div>
+    </section>
+
+    <section class="grid" id="adminGrid" style="display:none;">
+      <!-- BANNERS -->
+      <section class="card">
+        <div class="card__head">
+          <h2>באנרים (מסך פתיחה)</h2>
+          <div class="pill">Storage: /banners</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <input id="banKicker" class="input" placeholder="כותרת קטנה (kicker)" />
+            <input id="banHeadline" class="input" placeholder="כותרת גדולה (headline)" />
+          </div>
+          <input id="banSub" class="input" placeholder="תיאור קצר (sub)" />
+          <input id="banChips" class="input" placeholder="צ'יפים מופרדים בפסיקים (לדוגמה: 🍕 פיצות, 🧀 תוספות)" />
+
+          <div class="row2">
+            <input id="banFile" class="input" type="file" accept="image/*,video/mp4,video/webm" />
+            <button id="btnUploadBanner" class="btn">העלה ושמור</button>
+          </div>
+          <div id="banStatus" class="hint"></div>
+        </div>
+
+        <div class="list" id="bannerList"></div>
+      </section>
+
+      <!-- PRODUCTS IMAGES -->
+      <section class="card">
+        <div class="card__head">
+          <h2>תמונות למוצרים</h2>
+          <div class="pill">Storage: /products</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <select id="prodSelect" class="input"></select>
+            <input id="prodFile" class="input" type="file" accept="image/*" />
+          </div>
+          <div class="row">
+            <button id="btnUploadProductImg" class="btn">העלה תמונה למוצר</button>
+          </div>
+          <div id="prodStatus" class="hint"></div>
+          <p class="muted" style="margin:0;">התמונה נשמרת בשדה <b>imageUrl</b> במסמך של המוצר ב‑Firestore (collection: <b>menu</b>).</p>
+        </div>
+
+        <div class="list">
+          <img id="prodPreview" class="previewImg" alt="" style="max-width:100%;border-radius:16px;display:block;opacity:0;" />
+        </div>
+      </section>
+
+      <!-- CATEGORIES IMAGES -->
+      <section class="card">
+        <div class="card__head">
+          <h2>תמונות לקטגוריות</h2>
+          <div class="pill">Storage: /categories</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <select id="catSelect" class="input"></select>
+            <input id="catFile" class="input" type="file" accept="image/*" />
+          </div>
+          <div class="row2">
+            <input id="catNameHe" class="input" placeholder="שם בעברית (אופציונלי)" />
+            <input id="catNameAr" class="input" placeholder="שם בערבית (אופציונלי)" />
+          </div>
+          <div class="row">
+            <button id="btnUploadCategoryImg" class="btn">העלה ושמור לקטגוריה</button>
+          </div>
+          <div id="catStatus" class="hint"></div>
+          <p class="muted" style="margin:0;">נשמר ב‑Firestore (collection: <b>categories</b>) בשדות <b>imageUrl</b>, <b>nameHe</b>, <b>nameAr</b>.</p>
+        </div>
+
+        <div class="list">
+          <img id="catPreview" class="previewImg" alt="" style="max-width:100%;border-radius:16px;display:block;opacity:0;" />
+        </div>
+      </section>
+
+      <!-- BASE IMAGES (AREA SELECTOR) -->
+      <section class="card">
+        <div class="card__head">
+          <h2>תמונת בסיס לאזורי פיצה / ספיחה</h2>
+          <div class="pill">Firestore: /settings/visuals • Storage: /bases</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <select id="baseType" class="input">
+              <option value="pizza">Pizza</option>
+              <option value="sfiha">سفيحا / منقوشه</option>
+            </select>
+            <select id="baseSize" class="input">
+              <option value="small">קטן / صغير</option>
+              <option value="medium" selected>בינוני / وسط</option>
+              <option value="large">גדול / كبير</option>
+            </select>
+          </div>
+          <div class="row2">
+            <input id="baseFile" class="input" type="file" accept="image/*" />
+            <button id="btnUploadBase" class="btn">העלה ושמור</button>
+          </div>
+          <div class="row2">
+            <label class="muted" style="display:flex;flex-direction:column;gap:6px;">
+              גודל עיגול (Scale)
+              <input id="baseScale" type="range" min="0.70" max="1.35" step="0.01" value="0.98" />
+            </label>
+            <div class="pill" id="baseScaleVal">0.98</div>
+          </div>
+          <div class="row">
+            <button id="btnSaveScale" class="btn btn--ghost">שמור גודל עיגול</button>
+          </div>
+          <div id="baseStatus" class="hint"></div>
+        </div>
+
+        <div class="list">
+          <img id="basePreview" class="previewImg" alt="" style="max-width:100%;border-radius:16px;display:block;opacity:0;" />
+        </div>
+      </section>
+
+      <!-- CUSTOMERS -->
+      <section class="card">
+        <div class="card__head">
+          <h2>ניהול לקוחות</h2>
+          <div class="pill">Firestore: /customers</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <input id="cPhone" class="input" inputmode="numeric" placeholder="טלפון (10 ספרות)" />
+            <input id="cName" class="input" placeholder="שם לקוח" />
+          </div>
+          <div class="row2">
+            <input id="cStreet" class="input" placeholder="רחוב" />
+            <input id="cHouse" class="input" placeholder="מספר בית" />
+          </div>
+          <div class="row2">
+            <input id="cCity" class="input" placeholder="עיר" value="יפו" />
+            <input id="cFloor" class="input" placeholder="קומה" />
+          </div>
+          <div class="row2">
+            <input id="cApt" class="input" placeholder="דירה" />
+            <input id="cNotes" class="input" placeholder="הערה (אופציונלי)" />
+          </div>
+          <div class="row">
+            <button id="btnSaveCustomer" class="btn">שמור / הוסף</button>
+            <button id="btnToggleBlock" class="btn btn--ghost">חסום / בטל חסימה</button>
+            <button id="btnDeleteCustomer" class="btn danger">מחק</button>
+          </div>
+          <div id="custStatus" class="hint"></div>
+
+          <div class="row2" style="margin-top:10px;">
+            <input id="custSearch" class="input" placeholder="חיפוש: טלפון / שם / רחוב" />
+            <div class="pill">לחץ על לקוח מהרשימה כדי לערוך</div>
+          </div>
+        </div>
+
+        <div class="list" id="customersList"></div>
+      </section>
+
+      <!-- I18N (Coverage labels) -->
+      <section class="card">
+        <div class="card__head">
+          <h2>תרגומים • אזורי תוספות (Coverage)</h2>
+          <div class="pill">Firestore: /i18n/coverage</div>
+        </div>
+
+        <div class="form">
+          <p class="muted" style="margin:0;">
+            כאן מגדירים את השמות ל־<b>ALL / HALF_LEFT / HALF_RIGHT / Q1..Q4</b> בעברית/ערבית/אנגלית.
+            הלקוח שולח רק IDs, והקופה/הדפסה מציגים לפי השפה.
+          </p>
+
+          <textarea id="i18nCoverageJson" class="input" style="min-height:220px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" placeholder='{"ALL":{"he":"על הכל","ar":"على الكل","en":"Whole"},"HALF_RIGHT":{...}}'></textarea>
+
+          <div class="row">
+            <button id="btnLoadCoverageI18n" class="btn btn--ghost">טען</button>
+            <button id="btnSaveCoverageI18n" class="btn">שמור תרגומים</button>
+          </div>
+          <div id="i18nCoverageStatus" class="hint"></div>
+        </div>
+      </section>
+      
+      <!-- I18N (Sauces for pasta + ravioli) -->
+      <section class="card">
+        <div class="card__head">
+          <h2>תרגומים • רטבים (פסטה + רביולי)</h2>
+          <div class="pill">Firestore: /i18n/sauces</div>
+        </div>
+        <p class="muted">
+          כאן מגדירים סט רטבים אחד לפסטה ולרביולי. ההזמנה שולחת <b>sauceId</b> בלבד, והקופה/הדפסה מציגים תמיד לפי הערבית ששמת (ar) בקופה.
+        </p>
+
+        <textarea id="i18nSaucesJson" class="input" style="min-height:220px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"
+          placeholder='{"cream":{"he":"אלפרדו","ar":"شمنت","en":"Cream","imgPath":"sauces/cream.png"},"rose":{"he":"רוזה","ar":"روزه","en":"Rose","imgPath":"sauces/rose.png"},"tomato":{"he":"עגבניה","ar":"بندوره","en":"Tomato","imgPath":"sauces/tomato.png"}}'></textarea>
+
+        <div class="row row--end">
+          <div class="muted" id="i18nSaucesStatus"></div>
+          <button class="btn" id="btnLoadSaucesI18n">טען</button>
+          <button class="btn btn--primary" id="btnSaveSaucesI18n">שמור</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="gap:12px; align-items:flex-end;">
+          <div style="flex:1;">
+            <div class="muted" style="margin-bottom:6px;">העלה תמונה לרוטב לפי sauceId</div>
+            <select id="sauceImgId" class="input"></select>
+          </div>
+          <div style="flex:1;">
+            <div class="muted" style="margin-bottom:6px;">קובץ PNG/WebP</div>
+            <input id="sauceImgFile" class="input" type="file" accept="image/*" />
+          </div>
+          <button class="btn" id="btnUploadSauceImg">העלה תמונה</button>
+        </div>
+        <div class="hint">התמונה נשמרת ב-Storage: <code>sauces/&lt;sauceId&gt;.&lt;ext&gt;</code> ומעודכנת בתוך /i18n/sauces (imgPath).</div>
+      </section>
+
+
+      <!-- RESTAURANT HOURS -->
+      <section class="card">
+        <div class="card__head">
+          <h2>שעות פעילות</h2>
+          <div class="pill">Firestore: /settings/restaurant</div>
+        </div>
+
+        <div class="form">
+          <div class="table" id="hoursTable"></div>
+          <div class="row" style="margin-top:10px;">
+            <button id="btnSaveHours" class="btn">שמור שעות</button>
+          </div>
+          <div id="hoursStatus" class="hint"></div>
+          <p class="muted" style="margin:0;">המערכת שומרת לכל יום: פתיחה/סגירה + האם סגור.</p>
+        </div>
+      </section>
+
+      <!-- DELIVERY ZONES -->
+      <section class="card">
+        <div class="card__head">
+          <h2>זמני הגעה + דמי משלוח לפי אזור</h2>
+          <div class="pill">Firestore: /deliveryZones</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <input id="zName" class="input" placeholder="שם אזור / שכונה" />
+            <input id="zFee" class="input" inputmode="decimal" placeholder="דמי משלוח (₪)" />
+          </div>
+          <div class="row2">
+            <input id="zEtaMin" class="input" inputmode="numeric" placeholder="זמן הגעה מינימום (דק')" />
+            <input id="zEtaMax" class="input" inputmode="numeric" placeholder="זמן הגעה מקסימום (דק')" />
+          </div>
+          <div class="row2">
+            <input id="zNotes" class="input" placeholder="הערה (אופציונלי)" />
+            <label class="chk"><input id="zActive" type="checkbox" checked /> פעיל</label>
+          </div>
+          <div class="row">
+            <button id="btnSaveZone" class="btn">שמור / הוסף אזור</button>
+            <button id="btnClearZone" class="btn btn--ghost">נקה טופס</button>
+          </div>
+          <div id="zonesStatus" class="hint"></div>
+        </div>
+
+        <div class="list" id="zonesList"></div>
+      </section>
+    </section>
+  
+      
+      <!-- TOPPINGS & PRICING (FIREBASE) -->
+      <section class="card">
+        <div class="card__head">
+          <h2>ניהול תוספות ומחירים (Firebase)</h2>
+          <div class="pill">Firestore: options + pricingRules</div>
+        </div>
+
+        <div class="form">
+          <div class="hint">כאן אתה עורך את שמות התוספות (עברית/ערבית/אנגלית) ואת סוג התוספת. המחירים מנוהלים לפי גודל (L/M/P) כדי שלא יהיה בלבול בין לקוחות לקופה.</div>
+        </div>
+
+        <div class="row" style="gap:10px; align-items:center; margin-top:6px;">
+          <button id="optAddBtn" class="btn">+ תוספת חדשה</button>
+          <button id="optReloadBtn" class="btn btn--ghost">רענן</button>
+          <span class="muted" id="optStatus"></span>
+        </div>
+
+        <div class="tableWrap">
+          <table class="tbl" id="optTable">
+            <thead>
+              <tr>
+                <th style="width:120px;">ID</th>
+                <th style="width:140px;">סוג</th>
+                <th>עברית</th>
+                <th>العربية</th>
+                <th>English</th>
+                <th style="width:80px;">מיון</th>
+                <th style="width:90px;">פעיל</th>
+                <th style="width:220px;">תמונה</th>
+                <th style="width:180px;">פעולות</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="card__head" style="margin-top:6px;">
+          <h3 style="margin:0;">מחירים לפי גודל</h3>
+          <div class="pill">pricingRules/pizza_toppings_by_size</div>
+        </div>
+
+        <div class="grid3">
+          <div class="miniCard">
+            <div class="miniHead">גדולה (L)</div>
+            <div class="row3">
+              <label>רגילה <input id="pr_L_regular" class="input" type="number" /></label>
+              <label>מיוחדת <input id="pr_L_special" class="input" type="number" /></label>
+              <label>שרימפס <input id="pr_L_shrimp" class="input" type="number" /></label>
+            </div>
+            <label style="margin-top:8px; display:block;">מסביב גבינה <input id="pr_L_cheese_crust" class="input" type="number" /></label>
+          </div>
+
+          <div class="miniCard">
+            <div class="miniHead">בינונית (M)</div>
+            <div class="row3">
+              <label>רגילה <input id="pr_M_regular" class="input" type="number" /></label>
+              <label>מיוחדת <input id="pr_M_special" class="input" type="number" /></label>
+              <label>שרימפס <input id="pr_M_shrimp" class="input" type="number" /></label>
+            </div>
+            <label style="margin-top:8px; display:block;">מסביב גבינה <input id="pr_M_cheese_crust" class="input" type="number" /></label>
+          </div>
+
+          <div class="miniCard">
+            <div class="miniHead">אישית (P)</div>
+            <div class="row3">
+              <label>רגילה <input id="pr_P_regular" class="input" type="number" /></label>
+              <label>מיוחדת <input id="pr_P_special" class="input" type="number" /></label>
+              <label>שרימפס <input id="pr_P_shrimp" class="input" type="number" /></label>
+            </div>
+            <label style="margin-top:8px; display:block;">מסביב גבינה <input id="pr_P_cheese_crust" class="input" type="number" /></label>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="prSaveBtn" class="btn">שמור מחירים</button>
+          <button id="prLoadBtn" class="btn btn--ghost">טען מחירים</button>
+          <span class="muted" id="prStatus"></span>
+        </div>
+      </section>
+
+<!-- TOPPING PIECES (REAL) -->
+      <section class="card">
+        <div class="card__head">
+          <h2>תמונות תוספות אמיתיות (לשים על הפיצה)</h2>
+          <div class="pill">Storage: /toppings_pieces</div>
+        </div>
+
+        <div class="form">
+          <div class="row2">
+            <select id="topTid" class="input"></select>
+            <label class="check">
+              <input type="checkbox" id="topAppend" checked />
+              <span>להוסיף לתמונות קיימות (append)</span>
+            </label>
+          </div>
+
+          <input id="topFiles" class="input" type="file" accept="image/*" multiple />
+          <div class="row">
+            <button id="topUploadBtn" class="btn">העלה תמונות לתוספת</button>
+            <button id="topClearBtn" class="btn btn--ghost">נקה תמונות לתוספת</button>
+          </div>
+          <div id="topHint" class="hint"></div>
+          <div id="topList" class="list"></div>
+        </div>
+      </section>
+
+</main>
+
+  <!-- tiny helpers -->
+  <div id="loading" class="loading" hidden></div>
+  <div id="toast" class="toast"><div class="t"></div><div class="s"></div></div>
+
+  <footer class="foot">
+    <span class="muted">Pizza Olive • Admin</span>
+  </footer>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
