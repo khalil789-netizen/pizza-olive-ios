@@ -1,6 +1,6 @@
 workflows:
   ios_release:
-    name: Pizza Olive iOS Build
+    name: Pizza Olive iOS
     max_build_duration: 60
     instance_type: mac_mini_m2
 
@@ -9,6 +9,7 @@ workflows:
       xcode: latest
 
     scripts:
+
       - name: Install dependencies
         script: |
           npm install
@@ -16,13 +17,13 @@ workflows:
       - name: Ensure web assets exist
         script: |
           if [ ! -d "www" ]; then
-            echo "www folder missing, building..."
-            npm run build || echo "no build script, continuing"
+            echo "www folder missing!"
+            exit 1
           fi
 
       - name: Add iOS platform
         script: |
-          npx cap add ios || echo "ios already exists"
+          npx cap add ios || true
 
       - name: Sync Capacitor
         script: |
@@ -31,11 +32,11 @@ workflows:
       - name: Build Xcode archive
         script: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace \
-                     -scheme App \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     -archivePath build/App.xcarchive archive
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/App.xcarchive archive
 
     artifacts:
-      - ios/App/build/*.xcarchive
+      - ios/App/build/**/*.xcarchive
