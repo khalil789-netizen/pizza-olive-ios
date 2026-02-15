@@ -26,7 +26,7 @@ workflows:
 
       - name: Install CocoaPods
         script: |
-          cd ios/App
+         cd ios/App/App
           pod install
 
       - name: Xcode Archive (unsigned)
